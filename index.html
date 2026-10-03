@@ -97,11 +97,32 @@
      提示文字（placeholder）則用獨立的 ::placeholder 規則調小，不影響上面的防縮放設定 */
   #chartNote{font-size:16px;}
   #chartNote::placeholder{font-size:11.5px;}
-  .note-box label{font-size:16px;font-weight:700;color:var(--ink);}
   input:focus,select:focus,textarea:focus{outline:none;box-shadow:0 0 0 2px var(--indigo);background:var(--white);}
-  .note-box{margin-top:16px;margin-bottom:18px;}
+
+  /* 斷事紀錄：由下往上滑出的卡片，不佔用一般版面空間，按塗鴉列上的按鈕才叫出；
+     不加灰色遮罩、欄位也固定高度不隨內容變長再往上撐開，這樣命盤在卡片上方仍然看得到 */
+  .note-sheet-backdrop{position:fixed;inset:0;z-index:60;pointer-events:none;}
+  .note-sheet-backdrop.show{pointer-events:auto;}
+  .note-sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--white);
+    border-radius:20px 20px 0 0;box-shadow:0 -4px 20px rgba(31,31,31,.18);
+    padding:10px 18px calc(18px + env(safe-area-inset-bottom));
+    transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);
+    display:flex;flex-direction:column;gap:10px;}
+  .note-sheet.show{transform:translateY(0);}
+  .note-sheet-handle{width:36px;height:4px;border-radius:999px;background:var(--line-soft);
+    margin:0 auto 4px;}
+  .note-sheet-head{font-size:16px;font-weight:700;color:var(--ink);
+    font-family:"PingFang TC","Microsoft JhengHei",sans-serif;}
+  .note-sheet textarea{height:96px;min-height:0;resize:none;overflow-y:auto;}
+  .note-sheet .btn-main{padding:12px;width:33%;align-self:flex-end;}
+  @media (min-width:640px){
+    .note-sheet{left:50%;transform:translate(-50%,100%);max-width:680px;right:auto;width:100%;
+      border-radius:20px 20px 0 0;}
+    .note-sheet.show{transform:translate(-50%,0);}
+  }
+  @media (min-width:1024px){ .note-sheet{max-width:880px;} }
   .date-sel-row{display:flex;gap:5px;align-items:center;}
-  .date-sel-row select{flex:1 1 0;min-width:0;padding:7px 3px;}
+  .date-sel-row select{flex:1 1 0;min-width:0;padding:7px 3px 7px 10px;}
   .date-sel-row .colon{color:var(--ink-soft);flex:0 0 auto;}
 
   .seg{display:flex;border:none;border-radius:var(--r-pill);overflow:hidden;background:var(--fill);
@@ -109,8 +130,8 @@
   .seg button{flex:1;padding:7px 4px;font-size:12.5px;background:transparent;border:none;
     color:var(--ink-soft);cursor:pointer;font-family:"PingFang TC","Microsoft JhengHei",sans-serif;
     border-radius:var(--r-pill);transition:background .15s,color .15s,box-shadow .15s;white-space:nowrap;}
-  #outerSeg button{font-size:10px;padding:7px 2px;line-height:1;}
-  #innerSeg button{font-size:10px;padding:7px 2px;line-height:1;}
+  #outerSeg button{font-size:10px;padding:9px 2px;line-height:1;}
+  #innerSeg button{font-size:10px;padding:9px 2px;line-height:1;}
   .lbl-block{font-size:12px;color:var(--ink-soft);font-family:"PingFang TC","Microsoft JhengHei",sans-serif;
     margin-bottom:4px;}
   #lngDirSeg button{font-size:11.5px;padding:7px 3px;}
@@ -141,8 +162,9 @@
     display:flex;align-items:center;justify-content:center;}
   .draw-tool-btn svg{width:18px;height:18px;}
   #drawToolsRow{justify-content:center;}
-  #btnResetScope,#btnThisYear,#btnThisMonth,#btnToday{font-size:10.5px;padding:9px 3px;white-space:nowrap;
-    border:0.5px solid var(--gold);}
+  #quickScopeRow{gap:6px;margin-bottom:10px;}
+  #quickScopeRow button{flex:1 1 0;}
+  #btnResetScope,#btnThisYear,#btnThisMonth,#btnToday{font-size:10.5px;padding:9px 3px;white-space:nowrap;font-weight:700;}
   #btnThisYear.on,#btnThisMonth.on,#btnToday.on{background:var(--gold);color:#fff;}
   #drawToolsRow{padding:6px 0;gap:4px;}
   #drawToolsRow button{border:none;border-radius:var(--r-md);background:var(--fill);position:relative;
@@ -171,21 +193,11 @@
 
   /* ---- chart ---- */
   #chartSection{display:none;}
-  body.chart-mode{padding-bottom:92px;}
   .chart-topbar{display:flex;justify-content:space-between;align-items:center;
     gap:8px;flex-wrap:wrap;margin:0 0 14px;padding:12px 2px 14px;}
   .chart-topbar .ttl{display:flex;flex-direction:column;min-width:0;}
   .chart-topbar h2{font-size:17px;margin:0;letter-spacing:.02em;font-weight:700;}
   .chart-topbar .sub{font-size:11.5px;color:var(--ink-soft);margin-top:1px;font-family:"PingFang TC","Microsoft JhengHei",sans-serif;}
-
-  .chart-bottombar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:45;gap:8px;
-    padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:rgba(247,247,247,.94);
-    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line-soft);
-    box-shadow:0 -2px 12px rgba(31,31,31,.07);}
-  .chart-bottombar.show{display:flex;}
-  .chart-bottombar button{flex:1;font-size:11.5px;padding:10px 3px;white-space:nowrap;}
-  @media (min-width:640px){ .chart-bottombar{left:50%;transform:translateX(-50%);max-width:680px;right:auto;width:100%;} }
-  @media (min-width:1024px){ .chart-bottombar{max-width:880px;} }
 
   .scope-bar{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;
     font-family:"PingFang TC","Microsoft JhengHei",sans-serif;}
@@ -228,6 +240,7 @@
   .palace.ref-dax{background:#E7EEE2;}
   .palace.ref-liu{background:#E6ECF4;}
   .palace.ref-both{background:linear-gradient(135deg,#E7EEE2 50%,#E6ECF4 50%);}
+  .palace.ref-liuyue{background:#EEE5F1;}
   .palace .stars{display:flex;flex-direction:row;flex-wrap:wrap;gap:3px;align-content:flex-start;margin-top:1px;}
   .palace .star-col{display:flex;flex-direction:column;align-items:center;}
   .hua-stack{display:flex;flex-direction:column;gap:1px;margin-top:1px;}
@@ -499,10 +512,19 @@
       <button class="btn-ghost draw-tool-btn" id="btnScreenshot" title="截圖" aria-label="截圖">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg>
       </button>
+      <button class="btn-ghost draw-tool-btn" id="btnNoteToggle" title="斷事紀錄" aria-label="斷事紀錄">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
+      </button>
     </div>
 
     <div class="card">
       <div class="scope-bar" style="margin-top:10px">
+        <div class="field-row" id="quickScopeRow" style="grid-column:1/3">
+          <button class="btn-ghost" id="btnResetScope">回本命盤</button>
+          <button class="btn-ghost" id="btnThisYear">今年</button>
+          <button class="btn-ghost" id="btnThisMonth">本月</button>
+          <button class="btn-ghost" id="btnToday">今天</button>
+        </div>
         <div class="scope-chip">
           <span class="lbl">大限</span>
           <button type="button" class="scope-step" id="daxPrev">‹</button>
@@ -553,13 +575,6 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="field note-box">
-        <label>斷事紀錄</label>
-        <textarea id="chartNote" rows="3" placeholder="記下這張命盤的心得、備註…（儲存命盤時會一起存起來）"></textarea>
-      </div>
-    </div>
-
     <!-- 宮位詳細資訊／存入命盤庫，不需要外包卡片 -->
     <div class="detail-panel" id="detailPanel">
       <h3>點選任一宮位</h3>
@@ -570,14 +585,14 @@
       <input type="text" id="saveLabel" placeholder="替這張命盤取個名字，例如：我 / 媽媽 / 阿翔">
       <button class="btn-ghost" id="btnSave">存入命例庫</button>
     </div>
-  </div>
 
-  <!-- 固定於畫面下方 -->
-  <div class="chart-bottombar" id="chartBottombar">
-    <button class="btn-ghost" id="btnResetScope">回本命盤</button>
-    <button class="btn-ghost" id="btnThisYear">今年</button>
-    <button class="btn-ghost" id="btnThisMonth">本月</button>
-    <button class="btn-ghost" id="btnToday">今天</button>
+    <div class="note-sheet-backdrop" id="noteSheetBackdrop"></div>
+    <div class="note-sheet" id="noteSheet">
+      <div class="note-sheet-handle"></div>
+      <div class="note-sheet-head">斷事紀錄</div>
+      <textarea id="chartNote" rows="4" placeholder="記下這張命盤的心得、備註…"></textarea>
+      <button class="btn-main" id="btnNoteSave">儲　存</button>
+    </div>
   </div>
 
   <footer class="foot">
@@ -1240,7 +1255,6 @@ document.getElementById('btnBuildRandom').addEventListener('click', function(){
 
 function exitChartView(){
   document.getElementById('chartSection').style.display='none';
-  document.getElementById('chartBottombar').classList.remove('show');
   document.body.classList.remove('chart-mode');
   document.getElementById('headerTop').style.display='';
   document.getElementById('inputCard').style.display='';
@@ -1610,16 +1624,6 @@ function flyingAuxStars(stemIdx, branchIdx, natalHourIdx){
   return out;
 }
 
-/* 筆記欄自動依內容高度撐開：手機瀏覽器大多不支援用手指拖曳 textarea 右下角調整大小，
-   用這個方式讓筆記不管在哪個裝置輸入多少都能完整看到、不用另外拖拉 */
-function autosizeNote(){
-  var ta = document.getElementById('chartNote');
-  if(!ta) return;
-  ta.style.height = 'auto';
-  ta.style.height = Math.max(ta.scrollHeight, 64) + 'px';
-}
-document.getElementById('chartNote').addEventListener('input', autosizeNote);
-
 /* 如果目前這張盤是從「已存命盤」打開的，筆記一改完（停筆約800ms後）就自動存回原本那筆存檔，
    不用使用者自己再按一次「存入命盤庫」；全新起盤、還沒存過的命盤則不會自動存（沒有既有檔案可存回去） */
 var _noteSaveTimer = null;
@@ -1630,8 +1634,8 @@ function scheduleNoteAutosave(){
 }
 function autosaveNoteToExisting(){
   var id = STATE.loadedSavedId;
-  if(!id) return;
-  storeGet(id).then(function(res){
+  if(!id) return Promise.resolve();
+  return storeGet(id).then(function(res){
     if(!res) return;
     var payload;
     try{ payload = JSON.parse(res.value); }catch(e){ return; }
@@ -1641,17 +1645,34 @@ function autosaveNoteToExisting(){
 }
 document.getElementById('chartNote').addEventListener('input', scheduleNoteAutosave);
 
+/* 斷事紀錄：由塗鴉列的按鈕叫出由下往上滑出的卡片 */
+function openNoteSheet(){
+  document.getElementById('noteSheet').classList.add('show');
+  document.getElementById('noteSheetBackdrop').classList.add('show');
+}
+function closeNoteSheet(){
+  document.getElementById('noteSheet').classList.remove('show');
+  document.getElementById('noteSheetBackdrop').classList.remove('show');
+}
+document.getElementById('btnNoteToggle').addEventListener('click', openNoteSheet);
+document.getElementById('noteSheetBackdrop').addEventListener('click', closeNoteSheet);
+document.getElementById('btnNoteSave').addEventListener('click', function(){
+  clearTimeout(_noteSaveTimer);
+  autosaveNoteToExisting().then(function(){
+    showToast('已儲存斷事紀錄');
+    closeNoteSheet();
+  });
+});
+
 function showChart(){
   document.getElementById('inputCard').style.display='none';
   document.getElementById('mainTabs').style.display='none';
   document.getElementById('birthFooter').style.display='none';
   document.getElementById('headerTop').style.display='none';
   document.getElementById('chartSection').style.display='block';
-  document.getElementById('chartBottombar').classList.add('show');
   document.body.classList.add('chart-mode');
   window.scrollTo(0, 0);
   document.getElementById('chartNote').value = '';
-  autosizeNote();
   STATE.loadedSavedId = null;
   STATE.strokes = [];
   STATE.redoStack = [];
@@ -1903,6 +1924,7 @@ function renderGrid(){
     else if(isDaxRef) div.classList.add('ref-dax');
     else if(isLiuRef) div.classList.add('ref-liu');
     else if(!daxInfo && !liuInfo && p.k===0) div.classList.add('natal-ming');
+    if(liuyueK!==null && p.k===liuyueK) div.classList.add('ref-liuyue');
 
     var badgeWrap = document.createElement('div');
     badgeWrap.className='badge-wrap';
@@ -1910,7 +1932,6 @@ function renderGrid(){
       var bs=document.createElement('div'); bs.className='hua shen'; bs.textContent='身'; badgeWrap.appendChild(bs);
     }
     if(liuInfo){
-      if(p.k===liuyueK){ var b2=document.createElement('div'); b2.className='badge-dot'; b2.style.background='var(--purple)'; b2.textContent='流月'; badgeWrap.appendChild(b2); }
       if(p.k===liuriK){ var b3=document.createElement('div'); b3.className='badge-dot'; b3.style.background='var(--purple)'; b3.textContent='流日'; badgeWrap.appendChild(b3); }
     }
     if(badgeWrap.children.length) div.appendChild(badgeWrap);
@@ -2394,7 +2415,10 @@ function lsOrMemDelete(key){
 document.getElementById('btnSave').addEventListener('click', function(){
   var label = document.getElementById('saveLabel').value.trim();
   if(label) STATE.chart.meta.name = label;
-  var id = chartStorageId();
+  // 若這張盤本來就是從「已存命例」打開的，直接更新回同一筆（含斷事紀錄），
+  // 不要另外新增一筆重複的命例
+  var isUpdate = !!STATE.loadedSavedId;
+  var id = isUpdate ? STATE.loadedSavedId : chartStorageId();
   var noteTxt = document.getElementById('chartNote').value;
   var payload = {
     id:id, savedAt:Date.now(), meta:STATE.chart.meta, note:noteTxt,
@@ -2407,7 +2431,16 @@ document.getElementById('btnSave').addEventListener('click', function(){
   storeGet('chart-index').catch(function(){ return null; }).then(function(res){
     var idx = [];
     try{ idx = res? JSON.parse(res.value):[]; }catch(e){ idx=[]; }
-    idx.unshift({id:id, name:STATE.chart.meta.name, savedAt:payload.savedAt});
+    if(isUpdate){
+      var found = false;
+      idx = idx.map(function(it){
+        if(it.id===id){ found = true; return {id:id, name:STATE.chart.meta.name, savedAt:payload.savedAt}; }
+        return it;
+      });
+      if(!found) idx.unshift({id:id, name:STATE.chart.meta.name, savedAt:payload.savedAt});
+    } else {
+      idx.unshift({id:id, name:STATE.chart.meta.name, savedAt:payload.savedAt});
+    }
     return Promise.all([
       storeSet('chart-index', JSON.stringify(idx)),
       storeSet(id, JSON.stringify(payload))
@@ -2418,7 +2451,7 @@ document.getElementById('btnSave').addEventListener('click', function(){
     if(usedMemFallback){
       showToast('已儲存「'+STATE.chart.meta.name+'」（目前雲端儲存無法使用，先暫存在這次瀏覽中，重新整理頁面後可能會消失）');
     } else {
-      showToast('已儲存「'+STATE.chart.meta.name+'」');
+      showToast((isUpdate?'已更新「':'已儲存「')+STATE.chart.meta.name+'」');
     }
   }).catch(function(err){
     console.error(err);
@@ -2483,7 +2516,6 @@ function loadChart(id){
     STATE.selectedPalaceK = null;
     showChart();
     document.getElementById('chartNote').value = payload.note || '';
-    autosizeNote();
     STATE.loadedSavedId = id; // 記下來源存檔，之後改筆記才能自動存回這一筆
   }).catch(function(err){
     console.error(err);
