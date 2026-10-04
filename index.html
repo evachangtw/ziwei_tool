@@ -51,7 +51,10 @@
         </div>
       </div>
 
-      <button class="btn-ghost" id="btnUseNow" style="width:100%;margin-bottom:10px">用現在的日期時間帶入 →</button>
+      <div class="field-row" style="margin-bottom:10px">
+        <button class="btn-ghost" id="btnUseNow" style="flex:1 1 0">現時起盤</button>
+        <button class="btn-ghost" id="btnQuickInput" style="flex:1 1 0">快速輸入日期時間</button>
+      </div>
 
       <div class="field-row" id="solarFields">
         <div class="field" style="flex-basis:100%">
@@ -142,6 +145,29 @@
     </ul>
 
     <button class="btn-main" id="btnBuild">起　盤</button>
+  </div>
+
+  <!-- 快速輸入日期時間：小視窗輸入 12 碼數字，直接帶入出生日期／時間欄位 -->
+  <div class="modal-backdrop" id="quickInputBackdrop"></div>
+  <div class="modal-box" id="quickInputModal">
+    <h3>快速輸入日期時間</h3>
+    <p class="hint" style="margin:6px 0 14px">例：198903251456 = 國曆 1989/03/25　14:56</p>
+    <input type="text" id="quickInputField" inputmode="numeric" placeholder="請輸入12碼數字" maxlength="12">
+    <div class="modal-actions">
+      <button class="btn-ghost" id="quickInputCancel">取消</button>
+      <button class="btn-main" id="quickInputConfirm">確定</button>
+    </div>
+  </div>
+
+  <!-- 已存命例：修改名稱小視窗 -->
+  <div class="modal-backdrop" id="renameBackdrop"></div>
+  <div class="modal-box" id="renameModal">
+    <h3>修改名稱</h3>
+    <input type="text" id="renameField" placeholder="請輸入新名稱" maxlength="30" style="margin-top:14px">
+    <div class="modal-actions">
+      <button class="btn-ghost" id="renameCancel">取消</button>
+      <button class="btn-main" id="renameConfirm">確定</button>
+    </div>
   </div>
 
   <!-- ============ CHART ============ -->
@@ -475,6 +501,19 @@ function fmtDT(date){
   return date.getUTCFullYear()+'-'+pad(date.getUTCMonth()+1)+'-'+pad(date.getUTCDate())+' '+
     pad(date.getUTCHours())+':'+pad(date.getUTCMinutes());
 }
+// 已存命例列表：儲存時間顯示到分鐘，例如 2026/10/3 13:04
+function fmtSavedAt(ts){
+  function pad(n){ return n<10?'0'+n:''+n; }
+  var d = new Date(ts);
+  return d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+}
+// 把 meta.clockTime（"yyyy-mm-dd hh:mm"）轉成跟上面一致的顯示格式
+function fmtClockTimeStr(s){
+  var m = /^(\d+)-(\d+)-(\d+) (\d+):(\d+)$/.exec(s);
+  if(!m) return s;
+  function pad(n){ return n<10?'0'+n:''+n; }
+  return parseInt(m[1],10)+'/'+parseInt(m[2],10)+'/'+parseInt(m[3],10)+' '+pad(parseInt(m[4],10))+':'+pad(parseInt(m[5],10));
+}
 
 /* ================= ziwei core ================= */
 function fiveElementBureau(stemIdx, branchIdx){
@@ -658,8 +697,15 @@ var STATE = {
   showFlying:false,
   showCenterInfo:true,
   showGuideLines:true,
-  loadedSavedId:null // 若目前這張盤是從「已存命盤」開啟的，記下它在命盤庫裡的 id，筆記才能自動存回原檔
+  loadedSavedId:null, // 若目前這張盤是從「已存命盤」開啟的，記下它在命盤庫裡的 id，筆記才能自動存回原檔
+  loadedSavedBirthKey:null // 記下已存命例當時的出生時間，重新起盤後若時間變了才提醒使用者要重新存檔
 };
+function birthKeyFromMeta(meta){
+  if(!meta) return '';
+  if(meta.solarInput) return 'S:'+meta.solarInput+':'+meta.hourIdx;
+  if(meta.lunar) return 'L:'+meta.lunar.year+'-'+meta.lunar.month+'-'+meta.lunar.day+(meta.lunar.isLeap?'+':'')+':'+meta.hourIdx;
+  return '';
+}
 
 document.getElementById('outerSeg').addEventListener('click', function(e){
   if(e.target.tagName!=='BUTTON') return;
@@ -700,6 +746,7 @@ document.getElementById('calSeg').addEventListener('click', function(e){
   var v = e.target.dataset.v;
   document.getElementById('solarFields').style.display = (v==='solar')?'':'none';
   document.getElementById('lunarFields').style.display = (v==='lunar')?'':'none';
+  document.getElementById('btnQuickInput').disabled = (v==='lunar');
 });
 document.getElementById('leapSeg').addEventListener('click', function(e){
   if(e.target.tagName!=='BUTTON') return;
@@ -773,28 +820,71 @@ lHourSel.value = 6;
   minSel.value = 0;
 })();
 
-document.getElementById('btnUseNow').addEventListener('click', function(){
-  var now = new Date();
-  // 確保是「國曆」模式
+/* 共用：把一組國曆年/月/日/時/分直接帶入出生日期時間欄位（並確保切到「國曆」模式），
+   「現時起盤」「快速輸入日期時間」「從已存命例返回設定」都共用這組邏輯 */
+function setSolarDateTime(y, m, d, h, min){
   document.querySelector('#calSeg button[data-v="solar"]').click();
   var ySel = document.getElementById('inYear');
   var mSel = document.getElementById('inMonth');
   var dSel = document.getElementById('inDay');
   var hSel = document.getElementById('inHour');
   var minSel = document.getElementById('inMinute');
-  ySel.value = now.getFullYear();
-  mSel.value = now.getMonth()+1;
+  ySel.value = y;
+  mSel.value = m;
   // 重新計算當月天數上限，避免日期選單還停留在舊月份的天數
-  var daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-  var keepDay = now.getDate();
+  var daysInMonth = new Date(y, m, 0).getDate();
   dSel.innerHTML='';
-  for(var d=1; d<=daysInMonth; d++){
-    var o=document.createElement('option'); o.value=d; o.textContent=d+'日';
+  for(var dd=1; dd<=daysInMonth; dd++){
+    var o=document.createElement('option'); o.value=dd; o.textContent=dd+'日';
     dSel.appendChild(o);
   }
-  dSel.value = keepDay;
-  hSel.value = now.getHours();
-  minSel.value = now.getMinutes();
+  dSel.value = Math.min(d, daysInMonth);
+  hSel.value = h;
+  minSel.value = min;
+}
+
+document.getElementById('btnUseNow').addEventListener('click', function(){
+  var now = new Date();
+  setSolarDateTime(now.getFullYear(), now.getMonth()+1, now.getDate(), now.getHours(), now.getMinutes());
+});
+
+/* 快速輸入日期時間：12 碼數字（yyyyMMddHHmm）直接帶入出生日期時間欄位 */
+function openQuickInputModal(){
+  document.getElementById('quickInputField').value = '';
+  document.getElementById('quickInputBackdrop').classList.add('show');
+  document.getElementById('quickInputModal').classList.add('show');
+  document.getElementById('quickInputField').focus();
+}
+function closeQuickInputModal(){
+  document.getElementById('quickInputBackdrop').classList.remove('show');
+  document.getElementById('quickInputModal').classList.remove('show');
+}
+document.getElementById('btnQuickInput').addEventListener('click', openQuickInputModal);
+document.getElementById('quickInputBackdrop').addEventListener('click', closeQuickInputModal);
+document.getElementById('quickInputCancel').addEventListener('click', closeQuickInputModal);
+function confirmQuickInput(){
+  var raw = document.getElementById('quickInputField').value.trim();
+  if(!/^\d{12}$/.test(raw)){
+    showToast('格式錯誤，請輸入12碼數字，例如 198903251456', true);
+    return;
+  }
+  var y = parseInt(raw.slice(0,4),10);
+  var m = parseInt(raw.slice(4,6),10);
+  var d = parseInt(raw.slice(6,8),10);
+  var h = parseInt(raw.slice(8,10),10);
+  var min = parseInt(raw.slice(10,12),10);
+  if(m<1||m>12){ showToast('月份不正確，請輸入01～12', true); return; }
+  var daysInMonth = new Date(y, m, 0).getDate();
+  if(d<1||d>daysInMonth){ showToast('日期不正確，請確認當月天數', true); return; }
+  if(h<0||h>23){ showToast('小時不正確，請輸入00～23', true); return; }
+  if(min<0||min>59){ showToast('分鐘不正確，請輸入00～59', true); return; }
+  setSolarDateTime(y, m, d, h, min);
+  closeQuickInputModal();
+  showToast('已帶入 '+y+'/'+m+'/'+d+' '+(h<10?'0'+h:h)+':'+(min<10?'0'+min:min));
+}
+document.getElementById('quickInputConfirm').addEventListener('click', confirmQuickInput);
+document.getElementById('quickInputField').addEventListener('keydown', function(e){
+  if(e.key==='Enter') confirmQuickInput();
 });
 
 /* ================= build from birth form ================= */
@@ -806,6 +896,7 @@ function currentLongitude(){
 }
 
 document.getElementById('btnBuild').addEventListener('click', function(){
+  var wasLoadedSavedId = STATE.loadedSavedId;
   var gender = document.querySelector('#genderSeg button.on').dataset.v;
   var calType = document.querySelector('#calSeg button.on').dataset.v;
   var lng = currentLongitude();
@@ -881,6 +972,9 @@ document.getElementById('btnBuild').addEventListener('click', function(){
   STATE.scope = { daxianStep:-1, liunianYear:-1, liuyueMonth:null, liuriDay:null };
   STATE.selectedPalaceK = null;
   showChart();
+  if(wasLoadedSavedId && birthKeyFromMeta(chart.meta)!==STATE.loadedSavedBirthKey){
+    showToast('出生時間已修改，記得重新按「存入命例庫」才會更新已存的命例');
+  }
 });
 
 document.getElementById('btnBuildRandom').addEventListener('click', function(){
@@ -931,10 +1025,49 @@ function exitChartView(){
   document.getElementById('inputCard').style.display='';
   document.getElementById('mainTabs').style.display='';
 }
+/* 若目前這張盤是從「已存命例」打開的，返回設定時直接把這張盤的姓名、性別、
+   出生日期時間（國曆或農曆）、經度帶回表單，方便使用者直接修改後重新起盤 */
+function prefillFormFromChart(chart){
+  var meta = chart.meta;
+  if(!meta) return;
+  document.getElementById('inName').value = meta.name || '';
+  var genderBtn = document.querySelector('#genderSeg button[data-v="'+meta.gender+'"]');
+  if(genderBtn) genderBtn.click();
+  if(meta.solarInput){
+    var parts = meta.solarInput.match(/^(\d+)-(\d+)-(\d+) (\d+):(\d+)$/);
+    if(parts){
+      setSolarDateTime(parseInt(parts[1],10), parseInt(parts[2],10), parseInt(parts[3],10), parseInt(parts[4],10), parseInt(parts[5],10));
+    }
+  } else if(meta.lunar){
+    document.querySelector('#calSeg button[data-v="lunar"]').click();
+    document.getElementById('inLYear').value = meta.lunar.year;
+    document.getElementById('inLMonth').value = meta.lunar.month;
+    document.getElementById('inLDay').value = meta.lunar.day;
+    var leapBtn = document.querySelector('#leapSeg button[data-v="'+(meta.lunar.isLeap?1:0)+'"]');
+    if(leapBtn) leapBtn.click();
+    if(typeof meta.hourIdx==='number') lHourSel.value = meta.hourIdx;
+  }
+  if(typeof meta.lng==='number'){
+    document.getElementById('inLng').value = Math.abs(meta.lng);
+    var dirBtn = document.querySelector('#lngDirSeg button[data-v="'+(meta.lng<0?'W':'E')+'"]');
+    if(dirBtn) dirBtn.click();
+  }
+}
 document.getElementById('btnBack').addEventListener('click', function(){
+  var cameFromSaved = !!STATE.loadedSavedId;
+  var chartToPrefill = STATE.chart;
   exitChartView();
-  var activeTab = document.querySelector('.tab-btn.active');
-  document.getElementById('birthFooter').style.display = (activeTab && activeTab.dataset.tab==='birth') ? '' : 'none';
+  if(cameFromSaved && chartToPrefill){
+    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+    document.querySelector('.tab-btn[data-tab="birth"]').classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(function(p){p.style.display='none';});
+    document.getElementById('tab-birth').style.display='';
+    document.getElementById('birthFooter').style.display='';
+    prefillFormFromChart(chartToPrefill);
+  } else {
+    var activeTab = document.querySelector('.tab-btn.active');
+    document.getElementById('birthFooter').style.display = (activeTab && activeTab.dataset.tab==='birth') ? '' : 'none';
+  }
 });
 document.getElementById('btnOpenSaved').addEventListener('click', function(){
   exitChartView();
@@ -2102,15 +2235,16 @@ document.getElementById('btnSave').addEventListener('click', function(){
   storeGet('chart-index').catch(function(){ return null; }).then(function(res){
     var idx = [];
     try{ idx = res? JSON.parse(res.value):[]; }catch(e){ idx=[]; }
+    var birthTime = STATE.chart.meta.clockTime;
     if(isUpdate){
       var found = false;
       idx = idx.map(function(it){
-        if(it.id===id){ found = true; return {id:id, name:STATE.chart.meta.name, savedAt:payload.savedAt}; }
+        if(it.id===id){ found = true; return {id:id, name:STATE.chart.meta.name, savedAt:payload.savedAt, birthTime:birthTime}; }
         return it;
       });
-      if(!found) idx.unshift({id:id, name:STATE.chart.meta.name, savedAt:payload.savedAt});
+      if(!found) idx.unshift({id:id, name:STATE.chart.meta.name, savedAt:payload.savedAt, birthTime:birthTime});
     } else {
-      idx.unshift({id:id, name:STATE.chart.meta.name, savedAt:payload.savedAt});
+      idx.unshift({id:id, name:STATE.chart.meta.name, savedAt:payload.savedAt, birthTime:birthTime});
     }
     return Promise.all([
       storeSet('chart-index', JSON.stringify(idx)),
@@ -2119,6 +2253,7 @@ document.getElementById('btnSave').addEventListener('click', function(){
   }).then(function(){
     document.getElementById('saveLabel').value='';
     STATE.loadedSavedId = id; // 存過一次之後，之後改筆記就能直接自動存回這一筆，不用再按存入
+    STATE.loadedSavedBirthKey = birthKeyFromMeta(STATE.chart.meta); // 存檔後更新基準，之後改時間才會再次提醒
     if(usedMemFallback){
       showToast('已儲存「'+STATE.chart.meta.name+'」（目前雲端儲存無法使用，先暫存在這次瀏覽中，重新整理頁面後可能會消失）');
     } else {
@@ -2143,11 +2278,17 @@ function renderSavedList(){
     idx.forEach(function(item){
       var row = document.createElement('div');
       row.className='saved-item';
-      var d = new Date(item.savedAt);
-      row.innerHTML = '<div><div>'+item.name+'</div><div class="meta">'+d.toLocaleDateString()+'</div></div>'+
-        '<div class="ops"><button data-id="'+item.id+'" class="load">開啟</button>'+
+      var savedStr = fmtSavedAt(item.savedAt);
+      var metaHtml = '<div class="meta">儲存於 '+savedStr+'</div>';
+      if(item.birthTime){ metaHtml += '<div class="meta">命例時間 '+fmtClockTimeStr(item.birthTime)+'</div>'; }
+      row.innerHTML = '<div>'+item.name+'</div>'+metaHtml+
+        '<div class="ops"><button data-id="'+item.id+'" data-name="'+item.name.replace(/"/g,'&quot;')+'" class="rename">修改名稱</button>'+
+        '<button data-id="'+item.id+'" class="load">開啟</button>'+
         '<button data-id="'+item.id+'" class="del">刪除</button></div>';
       list.appendChild(row);
+    });
+    list.querySelectorAll('.rename').forEach(function(b){
+      b.addEventListener('click', function(){ openRenameModal(b.dataset.id, b.dataset.name); });
     });
     list.querySelectorAll('.load').forEach(function(b){
       b.addEventListener('click', function(){ loadChart(b.dataset.id); });
@@ -2188,6 +2329,7 @@ function loadChart(id){
     showChart();
     document.getElementById('chartNote').value = payload.note || '';
     STATE.loadedSavedId = id; // 記下來源存檔，之後改筆記才能自動存回這一筆
+    STATE.loadedSavedBirthKey = birthKeyFromMeta(payload.meta); // 記下當時的出生時間，重新起盤後比對是否改過
   }).catch(function(err){
     console.error(err);
     showToast('開啟失敗，請稍後再試', true);
@@ -2208,6 +2350,70 @@ function deleteChart(id){
   }).catch(function(err){
     console.error(err);
     showToast('刪除失敗，請稍後再試', true);
+  });
+}
+
+var _renameTargetId = null;
+function openRenameModal(id, currentName){
+  _renameTargetId = id;
+  document.getElementById('renameField').value = currentName || '';
+  document.getElementById('renameBackdrop').classList.add('show');
+  document.getElementById('renameModal').classList.add('show');
+  document.getElementById('renameField').focus();
+  document.getElementById('renameField').select();
+}
+function closeRenameModal(){
+  document.getElementById('renameBackdrop').classList.remove('show');
+  document.getElementById('renameModal').classList.remove('show');
+  _renameTargetId = null;
+}
+document.getElementById('renameBackdrop').addEventListener('click', closeRenameModal);
+document.getElementById('renameCancel').addEventListener('click', closeRenameModal);
+function confirmRename(){
+  var newName = document.getElementById('renameField').value.trim();
+  if(!newName){
+    showToast('名稱不能是空白', true);
+    return;
+  }
+  var id = _renameTargetId;
+  if(!id) return;
+  renameChart(id, newName);
+  closeRenameModal();
+}
+document.getElementById('renameConfirm').addEventListener('click', confirmRename);
+document.getElementById('renameField').addEventListener('keydown', function(e){
+  if(e.key==='Enter') confirmRename();
+});
+function renameChart(id, newName){
+  storeGet('chart-index').catch(function(){ return null; }).then(function(res){
+    var idx = [];
+    try{ idx = res? JSON.parse(res.value):[]; }catch(e){ idx=[]; }
+    idx = idx.map(function(it){
+      if(it.id===id) return {id:it.id, name:newName, savedAt:it.savedAt, birthTime:it.birthTime};
+      return it;
+    });
+    return storeGet(id).then(function(itemRes){
+      var updates = [storeSet('chart-index', JSON.stringify(idx))];
+      if(itemRes){
+        var payload;
+        try{ payload = JSON.parse(itemRes.value); }catch(e){ payload = null; }
+        if(payload){
+          payload.meta = payload.meta || {};
+          payload.meta.name = newName;
+          updates.push(storeSet(id, JSON.stringify(payload)));
+        }
+      }
+      return Promise.all(updates);
+    });
+  }).then(function(){
+    if(STATE.loadedSavedId===id && STATE.chart && STATE.chart.meta){
+      STATE.chart.meta.name = newName;
+    }
+    renderSavedList();
+    showToast('已更新名稱');
+  }).catch(function(err){
+    console.error(err);
+    showToast('修改名稱失敗，請稍後再試', true);
   });
 }
 
