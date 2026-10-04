@@ -846,6 +846,7 @@ function setSolarDateTime(y, m, d, h, min){
 document.getElementById('btnUseNow').addEventListener('click', function(){
   var now = new Date();
   setSolarDateTime(now.getFullYear(), now.getMonth()+1, now.getDate(), now.getHours(), now.getMinutes());
+  document.getElementById('inName').value = '現時起盤';
 });
 
 /* 快速輸入日期時間：12 碼數字（yyyyMMddHHmm）直接帶入出生日期時間欄位 */
@@ -1038,6 +1039,12 @@ function prefillFormFromChart(chart){
     if(parts){
       setSolarDateTime(parseInt(parts[1],10), parseInt(parts[2],10), parseInt(parts[3],10), parseInt(parts[4],10), parseInt(parts[5],10));
     }
+  } else if(meta.kind==='random' && meta.clockTime){
+    // 紫卦隨機起盤沒有「使用者輸入」的國曆欄位，直接用當初隨機出來的國曆時鐘時間回填
+    var rparts = meta.clockTime.match(/^(\d+)-(\d+)-(\d+) (\d+):(\d+)$/);
+    if(rparts){
+      setSolarDateTime(parseInt(rparts[1],10), parseInt(rparts[2],10), parseInt(rparts[3],10), parseInt(rparts[4],10), parseInt(rparts[5],10));
+    }
   } else if(meta.lunar){
     document.querySelector('#calSeg button[data-v="lunar"]').click();
     document.getElementById('inLYear').value = meta.lunar.year;
@@ -1053,11 +1060,39 @@ function prefillFormFromChart(chart){
     if(dirBtn) dirBtn.click();
   }
 }
+// 回到預設的本命起盤頁與預設時間（姓名清空、性別/曆法/日期時間/經度/晚子時都還原成初始值）
+function resetBirthFormToDefault(){
+  document.getElementById('inName').value = '';
+  var genderBtn = document.querySelector('#genderSeg button[data-v="F"]');
+  if(genderBtn) genderBtn.click();
+  document.querySelector('#calSeg button[data-v="solar"]').click();
+  setSolarDateTime(1990, 1, 1, 12, 0);
+  document.getElementById('inLYear').value = 1990;
+  document.getElementById('inLMonth').value = 1;
+  document.getElementById('inLDay').value = 1;
+  var leapBtn = document.querySelector('#leapSeg button[data-v="0"]');
+  if(leapBtn) leapBtn.click();
+  lHourSel.value = 6;
+  document.getElementById('inLng').value = 120;
+  var dirBtn = document.querySelector('#lngDirSeg button[data-v="E"]');
+  if(dirBtn) dirBtn.click();
+  var lateZiBtn = document.querySelector('#lateZiSeg button[data-v="1"]');
+  if(lateZiBtn) lateZiBtn.click();
+}
 document.getElementById('btnBack').addEventListener('click', function(){
   var cameFromSaved = !!STATE.loadedSavedId;
+  var cameFromRandom = !!(STATE.chart && STATE.chart.meta && STATE.chart.meta.kind==='random');
   var chartToPrefill = STATE.chart;
   exitChartView();
-  if(cameFromSaved && chartToPrefill){
+  if(cameFromSaved && cameFromRandom){
+    // 已儲存的紫卦隨機盤：返回設定時回到預設的本命起盤頁和時間，不帶入隨機出來的時間
+    document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+    document.querySelector('.tab-btn[data-tab="birth"]').classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(function(p){p.style.display='none';});
+    document.getElementById('tab-birth').style.display='';
+    document.getElementById('birthFooter').style.display='';
+    resetBirthFormToDefault();
+  } else if((cameFromSaved || cameFromRandom) && chartToPrefill){
     document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
     document.querySelector('.tab-btn[data-tab="birth"]').classList.add('active');
     document.querySelectorAll('.tab-panel').forEach(function(p){p.style.display='none';});
@@ -2280,7 +2315,7 @@ function renderSavedList(){
       row.className='saved-item';
       var savedStr = fmtSavedAt(item.savedAt);
       var metaHtml = '<div class="meta">儲存於 '+savedStr+'</div>';
-      if(item.birthTime){ metaHtml += '<div class="meta">命例時間 '+fmtClockTimeStr(item.birthTime)+'</div>'; }
+      if(item.birthTime){ metaHtml += '<div class="meta">命例時 '+fmtClockTimeStr(item.birthTime)+'</div>'; }
       row.innerHTML = '<div>'+item.name+'</div>'+metaHtml+
         '<div class="ops"><button data-id="'+item.id+'" data-name="'+item.name.replace(/"/g,'&quot;')+'" class="rename">修改名稱</button>'+
         '<button data-id="'+item.id+'" class="load">開啟</button>'+

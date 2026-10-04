@@ -172,7 +172,7 @@
     font-family:"PingFang TC","Microsoft JhengHei",sans-serif;font-size:13px;cursor:pointer;transition:transform .1s;}
   .random-row button:active{transform:scale(.97);}
 
-  .saved-list{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;}
+  .saved-list{display:flex;flex-direction:column;gap:8px;}
   .saved-item{display:flex;flex-direction:column;align-items:stretch;gap:4px;border:none;background:var(--fill);
     border-radius:var(--r-md);padding:10px 14px;font-size:13px;font-family:"PingFang TC","Microsoft JhengHei",sans-serif;}
   .saved-item .meta{color:var(--ink-soft);font-size:11px;}
