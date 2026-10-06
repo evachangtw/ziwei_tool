@@ -342,3 +342,8 @@
   .modal-box input{font-size:16px;letter-spacing:.05em;text-align:center;}
   .modal-actions{display:flex;gap:8px;margin-top:14px;}
   .modal-actions button{flex:1;}
+
+  .lunar-info{display:flex;justify-content:center;gap:12px;padding:6px 10px;flex-wrap:wrap;border-radius:var(--r-pill);background:rgba(0,0,0,.035);
+    font-size:12px;color:var(--ink-soft);font-family:"PingFang TC","Microsoft JhengHei",sans-serif;}
+  .lunar-info[hidden]{display:none;}
+  

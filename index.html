@@ -138,10 +138,10 @@
   <!-- 本命起盤的說明小字與起盤按鈕，獨立於卡片之外 -->
   <div id="birthFooter">
     <ul class="hint-list">
-      <li>一律採真太陽時（經度時差＋均時差）換算，不提供不校正選項。</li>
+      <li>「國曆」輸入一律採真太陽時（經度時差＋均時差）換算，不提供不校正選項；「農曆」輸入的時辰是直接指定，不做時間校正。</li>
       <li>預設以台灣時區（UTC+8）為標準時間基準，經度預設120度東經，適合台灣出生者；非台灣出生者請自行輸入實際經度與東西經。</li>
-      <li>若出生日期落在台灣歷史上實施日光節約時間的期間，會自動先扣除 1 小時再換算（僅採台灣規則，不採大陸規則）。</li>
-      <li>使用「國曆」輸入時，晚子時是否進位到隔天農曆日由上面的開關決定，時辰本身都仍是子時；「農曆」輸入是直接指定農曆日，不受此開關影響。</li>
+      <li>「國曆」輸入若落在台灣歷史上實施日光節約時間的期間，且經度在台灣範圍內（約 118.0～122.1 東經），會自動先扣除 1 小時再換算（僅採台灣規則，不採大陸規則）；經度不在台灣範圍則不扣除。</li>
+      <li>使用「國曆」輸入時，晚子時是否進位到隔天農曆日由上面的開關決定，時辰本身都仍是子時；「農曆」輸入是直接指定農曆日與時辰，不受此開關影響。</li>
     </ul>
 
     <button class="btn-main" id="btnBuild">起　盤</button>
@@ -246,6 +246,7 @@
           <select id="lrSel"></select>
           <button type="button" class="scope-step" id="lrNext">›</button>
         </div>
+        <div class="lunar-info" id="lunarInfo" style="grid-column:1/3" hidden></div>
         <div style="grid-column:1/3">
           <div class="lbl-block">盤內顯示</div>
           <div class="seg" id="innerSeg">
@@ -900,6 +901,16 @@ document.getElementById('btnBuild').addEventListener('click', function(){
   var wasLoadedSavedId = STATE.loadedSavedId;
   var gender = document.querySelector('#genderSeg button.on').dataset.v;
   var calType = document.querySelector('#calSeg button.on').dataset.v;
+  var lngRaw = document.getElementById('inLng').value.trim();
+  var lngNum = parseFloat(lngRaw);
+  if(lngRaw==='' || isNaN(lngNum)){
+    showToast('請輸入經度（0～180 之間的數字）', true);
+    return;
+  }
+  if(lngNum<0 || lngNum>180){
+    showToast('經度不正確：請輸入 0～180 之間的數字，東西經請用右側「東／西」切換', true);
+    return;
+  }
   var lng = currentLongitude();
 
   var baseDate;
@@ -918,20 +929,22 @@ document.getElementById('btnBuild').addEventListener('click', function(){
     var lh = parseInt(lHourSel.value,10);
     var solar = lunarToSolar(ly,lm,ld,leap);
     if(!solar){ showToast('找不到對應的國曆日期，請確認農曆輸入是否正確（例如當年並無此閏月）', true); return; }
-    var hourClock = lh*2 - 1; // 子=23:00
-    if(hourClock<0) hourClock = 23;
+    // 農曆輸入的時辰是使用者直接指定的，不是鐘錶時間，所以不套用日光節約時間，
+    // 也不做經度／均時差校正（否則整點起算的時辰邊界會被校正值推到前一個時辰）
     baseDate = new Date(solar.getTime());
-    baseDate.setUTCHours(hourClock, 0, 0, 0);
   }
+  var isLunarInput = (calType==='lunar');
 
+  // 日光節約時間只套用在「國曆輸入」且「經度在台灣範圍內」（金馬澎湖本島約 118.0～122.1 東經）
   var dstApplied = false;
-  if(isInTaiwanDST(baseDate.getUTCFullYear(), baseDate.getUTCMonth()+1, baseDate.getUTCDate())){
+  var inTaiwanLng = (lng>=118.0 && lng<=122.1);
+  if(!isLunarInput && inTaiwanLng && isInTaiwanDST(baseDate.getUTCFullYear(), baseDate.getUTCMonth()+1, baseDate.getUTCDate())){
     baseDate.setUTCHours(baseDate.getUTCHours()-1);
     dstApplied = true;
   }
 
-  var finalDate = applyTrueSolarTime(baseDate, lng);
-  var hourIdx = hourIndexFromDate(finalDate);
+  var finalDate = isLunarInput ? baseDate : applyTrueSolarTime(baseDate, lng);
+  var hourIdx = isLunarInput ? lh : hourIndexFromDate(finalDate);
   // 晚子時（23:00-23:59）進位：只在「國曆輸入」時才需要由時鐘時間反推農曆日，
   // 才會有「該算今天還是明天」的問題。農曆輸入是直接指定農曆日，
   // 那一天是哪一天已經確定，不需要、也不應該再依時辰進位調整。
@@ -966,7 +979,8 @@ document.getElementById('btnBuild').addEventListener('click', function(){
     solarInput: (calType==='solar') ? (yv+'-'+mv+'-'+dv+' '+hv+':'+minv) : null,
     tst: true, lng: lng, dstApplied: dstApplied, lateZi: lateZi,
     isLateZiHour: (calType==='solar' && finalDate.getUTCHours()===23), effectiveMonth: effectiveMonth,
-    clockTime: fmtDT(baseDate), trueSolarTime: fmtDT(finalDate),
+    clockTime: isLunarInput ? null : fmtDT(baseDate), trueSolarTime: isLunarInput ? null : fmtDT(finalDate),
+    lunarLabel: isLunarInput ? ('農曆'+lunar.year+'年'+(lunar.isLeap?'閏':'')+lunar.month+'月'+lunar.day+'日 '+HOUR_LABEL[hourIdx].split('(')[0]+'時') : null,
     kind:'birth'
   };
   STATE.chart = chart;
@@ -1148,18 +1162,15 @@ function renderCompass(){
     var liuInfoOuter = activeLiunianInfo();
     var daxInfoOuter = activeDaxianInfo();
     if(liuInfoOuter){
-      // 已選流年：顯示流年當年實際各月分別落在哪一宮（流年斗君算法），
-      // 用真實掃描過的月份清單，正確處理該年可能出現的閏月
+      // 已選流年：顯示流年當年 12 個月分別落在哪一宮（流年斗君算法），閏月依月中分界歸入前後月份，不另外多一格
       var monthStemStart = YIN_STEM_START[liuInfoOuter.stemIdx];
       var monthPalaceOfDouJun = (liuInfoOuter.branchIdx - (c.month-1) + 24) % 12;
       var douJunBranch = (monthPalaceOfDouJun + c.hourIdx) % 12;
-      var monthsOfYear = getLunarMonthsOfYear(liuInfoOuter.year);
-      monthsOfYear.forEach(function(mo, idx){
-        var branchOfMonth = (douJunBranch + idx) % 12;
-        var monthStemIdx = (monthStemStart + idx)%10;
-        var label = (mo.isLeap?'閏':'')+MONTH_NAMES[mo.month-1]+TG[monthStemIdx];
-        daxAgeMap[branchOfMonth] = label;
-      });
+      for(var mIdx=0; mIdx<12; mIdx++){
+        var branchOfMonth = (douJunBranch + mIdx) % 12;
+        var monthStemIdx = (monthStemStart + mIdx)%10;
+        daxAgeMap[branchOfMonth] = MONTH_NAMES[mIdx]+TG[monthStemIdx];
+      }
     } else if(daxInfoOuter){
       // 已選大限（沒選流年）：顯示每個宮位在「這個大限」裡對應到的西元年、歲數
       var baseYear = c.meta.lunar.year;
@@ -1543,6 +1554,15 @@ function showChart(){
   renderCompass();
 }
 
+/* 流月／流日用的「有效農曆月份」（1～12）：跟本命盤閏月的月中分界同一套規則——
+   閏月初一～十五算當月，十六日起算下一個月；非閏月就是它自己的月份。
+   流月順序固定 12 個月（正月～臘月），閏月不另外多出一個月，閏月前後的月份才不會整個往後推一格 */
+function effectiveLunarMonth(lunar){
+  if(lunar.isLeap){
+    return (lunar.day<=15) ? lunar.month : (lunar.month%12)+1;
+  }
+  return lunar.month;
+}
 function activeDaxianInfo(){
   var c = STATE.chart;
   if(STATE.scope.daxianStep===null || STATE.scope.daxianStep<0) return null;
@@ -1558,8 +1578,8 @@ function activeLiunianInfo(){
   return {stemIdx:ys, branchIdx:yb, refK:p.k, year:STATE.scope.liunianYear};
 }
 /* 目前選中的流月的完整資訊（宮位、地支、月干），供盤面標示流月四化／疊宮用。
-   月干用五虎遁（YIN_STEM_START）配合「這是今年實際掃描到的第幾個月」來排，
-   跟外圍「大限/年/月」顯示同一套算法，閏月也能正確處理 */
+   月干用五虎遁（YIN_STEM_START）配合 12 個月的月序來排，
+   跟外圍「大限/年/月」顯示同一套算法，閏月依月中分界歸入前後月份 */
 function activeLiuyueInfo(){
   var ln = activeLiunianInfo();
   var c = STATE.chart;
@@ -1585,16 +1605,10 @@ function activeLiuyueInfo(){
   var monthPalaceOfDouJun = (ln.branchIdx - (c.month-1) + 24) % 12;
   var douJunBranch = (monthPalaceOfDouJun + c.hourIdx) % 12;
   var monthStemStart = YIN_STEM_START[ln.stemIdx];
-  // 用真實掃描過的農曆月清單，找出這是今年第幾個「月」（正確處理閏月），才能對上正確的月干
-  var monthsOfYear = getLunarMonthsOfYear(ln.year);
-  var mi = -1;
-  for(var i=0;i<monthsOfYear.length;i++){
-    var mo = monthsOfYear[i];
-    if(mo.month===lunar.month && !!mo.isLeap===!!lunar.isLeap){ mi=i; break; }
-  }
-  if(mi<0) mi = lunar.month-1;
-  var branchOfMonth = (douJunBranch + mi) % 12;
-  var monthStemIdx = (monthStemStart + mi) % 10;
+  // 閏月用月中分界換算成 12 個月裡的哪一個月，再排宮位與月干
+  var em = effectiveLunarMonth(lunar);
+  var branchOfMonth = (douJunBranch + (em-1)) % 12;
+  var monthStemIdx = (monthStemStart + (em-1)) % 10;
   var p = c.palaces.find(function(pp){ return pp.branchIdx===branchOfMonth; });
   if(!p) return null;
   return { k:p.k, branchIdx:branchOfMonth, stemIdx:monthStemIdx };
@@ -1612,10 +1626,32 @@ function liuriPalaceK(){
   var lunar = solarToLunar(gDate);
   var monthPalaceOfDouJun = (ln.branchIdx - (c.month-1) + 24) % 12;
   var douJunBranch = (monthPalaceOfDouJun + c.hourIdx) % 12;
-  var branchOfMonth = (douJunBranch + (lunar.month-1)) % 12;
+  var branchOfMonth = (douJunBranch + (effectiveLunarMonth(lunar)-1)) % 12;
   var dayBranch = (branchOfMonth + (lunar.day-1)) % 12;
   var p = c.palaces.find(function(pp){ return pp.branchIdx===dayBranch; });
   return p ? p.k : null;
+}
+
+var LUNAR_DAY_NAMES = ["初一","初二","初三","初四","初五","初六","初七","初八","初九","初十","十一","十二","十三","十四","十五","十六","十七","十八","十九","二十","廿一","廿二","廿三","廿四","廿五","廿六","廿七","廿八","廿九","三十"];
+/* 日干支：以 2000-01-01（戊午日）為基準，依日數差推算 */
+function dayGanzhi(g){
+  var days = Math.round((Date.UTC(g.getFullYear(),g.getMonth(),g.getDate()) - Date.UTC(2000,0,1)) / 86400000);
+  var idx = (((54 + days) % 60) + 60) % 60; // 戊午＝第54個（甲子=0）
+  return TG[idx%10] + DZ[idx%12];
+}
+/* 選了流月＋流日時，在選單下方顯示該日對應的農曆日期與月干支（月干支＝五虎遁月干＋月建地支，閏月依月中分界） */
+function renderLunarInfo(){
+  var el = document.getElementById('lunarInfo');
+  var ln = activeLiunianInfo();
+  if(!el) return;
+  if(!ln || !STATE.scope.liuyueMonth || !STATE.scope.liuriDay){ el.hidden = true; el.textContent=''; return; }
+  var gDate = carrierDate(ln.year, STATE.scope.liuyueMonth, STATE.scope.liuriDay, 12, 0);
+  var lunar = solarToLunar(gDate);
+  var em = effectiveLunarMonth(lunar);
+  var stem = TG[(YIN_STEM_START[ln.stemIdx] + em-1) % 10];
+  var branch = DZ[(2 + em-1) % 12];
+  el.textContent = '農曆 '+(lunar.isLeap?'閏':'')+MONTH_NAMES[lunar.month-1]+LUNAR_DAY_NAMES[lunar.day-1]+'　'+stem+branch+'月 '+dayGanzhi(gDate)+'日';
+  el.hidden = false;
 }
 
 function renderAll(){
@@ -1650,6 +1686,7 @@ function renderAll(){
   document.getElementById('btnThisMonth').classList.toggle('on', monthMatch && !STATE.scope.liuriDay);
   document.getElementById('btnToday').classList.toggle('on', dayMatch);
 
+  renderLunarInfo();
   renderGrid();
   renderDetail();
 }
@@ -1896,22 +1933,12 @@ function renderDetail(){
   var daxInfo = activeDaxianInfo();
   var liuInfo = activeLiunianInfo();
   if(liuInfo){
-    // 已選流年：這裡改顯示這個宮位對應到流年的哪個月（跟外圍「大限/年/月」同一套斗君算法，
-    // 用真實掃描過的月份清單，正確處理該年可能出現的閏月）
+    // 已選流年：這裡改顯示這個宮位對應到流年的哪個月（跟外圍「大限/年/月」同一套斗君算法，12 個月）
     var monthStemStart = YIN_STEM_START[liuInfo.stemIdx];
     var monthPalaceOfDouJun = (liuInfo.branchIdx - (c.month-1) + 24) % 12;
     var douJunBranch = (monthPalaceOfDouJun + c.hourIdx) % 12;
-    var monthsOfYear = getLunarMonthsOfYear(liuInfo.year);
-    var foundLabel=null;
-    for(var mi=0; mi<monthsOfYear.length; mi++){
-      var branchOfMonth = (douJunBranch + mi) % 12;
-      if(branchOfMonth===p.branchIdx){
-        var mo = monthsOfYear[mi];
-        var monthStemIdx = (monthStemStart + mi)%10;
-        foundLabel = (mo.isLeap?'閏':'')+MONTH_NAMES[mo.month-1]+TG[monthStemIdx];
-        break;
-      }
-    }
+    var mNo = (((p.branchIdx - douJunBranch) % 12) + 12) % 12; // 0～11：這個宮位是流年第幾個月
+    var foundLabel = MONTH_NAMES[mNo]+TG[(monthStemStart + mNo)%10];
     if(foundLabel!==null){
       html += '<div class="row"><b>流月：</b>'+foundLabel+'</div>';
     } else {
@@ -1996,30 +2023,6 @@ function populateLiunianOptions(){
     opt2.textContent = y+'年（'+age+'歲）';
     lnSel.appendChild(opt2);
   }
-}
-
-/* 掃描整個農曆年實際有哪些「月」（依真實國曆日期逐日核對），正確處理閏月：
-   閏月會被列成單獨一個流月選項，順序照真實曆法排列，不是天真地假設每年都剛好12個月 */
-function getLunarMonthsOfYear(year){
-  var months = [];
-  var d = carrierDate(year, 1, 21, 0, 0); // 農曆新年最早落在西曆1/21附近，從這裡開始掃描
-  var endGuard = carrierDate(year+1, 3, 1, 0, 0);
-  var cur = null;
-  while(d.getTime() < endGuard.getTime()){
-    var lu = solarToLunar(d);
-    if(lu.year===year){
-      var key = lu.month+(lu.isLeap?'L':'');
-      if(!cur || cur.key!==key){
-        cur = {key:key, month:lu.month, isLeap:lu.isLeap, start:new Date(d.getTime()), days:0};
-        months.push(cur);
-      }
-      cur.days++;
-    } else if(lu.year>year && months.length>0){
-      break;
-    }
-    d = new Date(d.getTime()+86400000);
-  }
-  return months;
 }
 
 function populateLiuyueOptions(){
@@ -2270,7 +2273,7 @@ document.getElementById('btnSave').addEventListener('click', function(){
   storeGet('chart-index').catch(function(){ return null; }).then(function(res){
     var idx = [];
     try{ idx = res? JSON.parse(res.value):[]; }catch(e){ idx=[]; }
-    var birthTime = STATE.chart.meta.clockTime;
+    var birthTime = STATE.chart.meta.clockTime || STATE.chart.meta.lunarLabel;
     if(isUpdate){
       var found = false;
       idx = idx.map(function(it){
