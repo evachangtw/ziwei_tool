@@ -325,7 +325,7 @@ textarea.form-control{resize:vertical;line-height:1.5;overflow:hidden;min-height
   .compass.bottom{bottom:1px;transform:translateX(-50%);}
   .compass.left{left:1px;transform:translateY(-50%);}
   .compass.right{right:1px;transform:translateY(-50%);}
-  .grid{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,minmax(87px,auto));
+  .grid{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,minmax(87px,1fr));
     gap:1px;width:100%;background:var(--line);border:1px solid var(--ink);border-radius:0;}
   .palace{background:var(--paper);position:relative;padding:4px 4px 3px;cursor:pointer;min-width:0;overflow:hidden;
     display:flex;flex-direction:column;transition:background .15s;}
