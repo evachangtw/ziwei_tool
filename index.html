@@ -1,122 +1,123 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-bs-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <meta name="color-scheme" content="light">
 <title>紫微排盤 · 三合派</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-<div class="wrap">
+<div class="container wrap">
 
   <header class="top" id="headerTop">
-    <div class="ttl">
+    <div class="ttl d-flex flex-column">
       <h1>紫微排盤</h1>
       <p>三合派 · 精簡星曜 · 真太陽時校正</p>
     </div>
   </header>
 
   <!-- ============ INPUT CARD ============ -->
-  <div class="tabs" id="mainTabs">
-    <button class="tab-btn active" data-tab="birth">本命起盤</button>
-    <button class="tab-btn" data-tab="random">紫卦隨機起盤</button>
-    <button class="tab-btn" data-tab="saved">已存命例</button>
-  </div>
-  <div class="card" id="inputCard">
+  <nav class="nav nav-pills nav-fill tabs" id="mainTabs">
+    <button type="button" class="nav-link tab-btn active" data-tab="birth">本命起盤</button>
+    <button type="button" class="nav-link tab-btn" data-tab="random">紫卦隨機起盤</button>
+    <button type="button" class="nav-link tab-btn" data-tab="saved">已存命例</button>
+  </nav>
+  <div class="card" id="inputCard"><div class="card-body">
     <!-- birth data tab -->
     <div class="tab-panel" id="tab-birth">
-      <div class="field-row">
-        <div class="field">
-          <label>姓名／稱呼</label>
-          <input type="text" id="inName" placeholder="例如：Eva">
+      <div class="row form-row">
+        <div class="col">
+          <label class="form-label" for="inName">姓名／稱呼</label>
+          <input type="text" class="form-control" id="inName" placeholder="例如：Eva">
         </div>
-        <div class="field small">
-          <label>性別</label>
+        <div class="col-auto field-sm">
+          <label class="form-label">性別</label>
           <div class="seg" id="genderSeg">
-            <button data-v="M">男</button>
-            <button class="on" data-v="F">女</button>
+            <button type="button" data-v="M">男</button>
+            <button type="button" class="on" data-v="F">女</button>
           </div>
         </div>
       </div>
 
-      <div class="field-row">
-        <div class="field small" style="flex-basis:100%">
-          <label>曆法</label>
+      <div class="row form-row">
+        <div class="col-12">
+          <label class="form-label">曆法</label>
           <div class="seg" id="calSeg">
-            <button class="on" data-v="solar">國曆（陽曆）</button>
-            <button data-v="lunar">農曆（陰曆）</button>
+            <button type="button" class="on" data-v="solar">國曆（陽曆）</button>
+            <button type="button" data-v="lunar">農曆（陰曆）</button>
           </div>
         </div>
       </div>
 
-      <div class="field-row" style="margin-bottom:10px">
-        <button class="btn-ghost" id="btnUseNow" style="flex:1 1 0">現時起盤</button>
-        <button class="btn-ghost" id="btnQuickInput" style="flex:1 1 0">快速輸入日期時間</button>
+      <div class="row form-row">
+        <div class="col-6"><button type="button" class="btn btn-ghost w-100" id="btnUseNow">現時起盤</button></div>
+        <div class="col-6"><button type="button" class="btn btn-ghost w-100" id="btnQuickInput">快速輸入日期時間</button></div>
       </div>
 
-      <div class="field-row" id="solarFields">
-        <div class="field" style="flex-basis:100%">
-          <label>出生日期</label>
-          <div class="date-sel-row">
-            <select id="inYear"></select>
-            <select id="inMonth"></select>
-            <select id="inDay"></select>
+      <div class="row form-row" id="solarFields">
+        <div class="col-12">
+          <label class="form-label">出生日期</label>
+          <div class="date-sel-row d-flex align-items-center">
+            <select class="form-select" id="inYear"></select>
+            <select class="form-select" id="inMonth"></select>
+            <select class="form-select" id="inDay"></select>
           </div>
         </div>
-        <div class="field" style="flex-basis:100%">
-          <label>出生時間</label>
-          <div class="date-sel-row">
-            <select id="inHour"></select>
+        <div class="col-12">
+          <label class="form-label">出生時間</label>
+          <div class="date-sel-row d-flex align-items-center">
+            <select class="form-select" id="inHour"></select>
             <span class="colon">：</span>
-            <select id="inMinute"></select>
+            <select class="form-select" id="inMinute"></select>
           </div>
         </div>
       </div>
 
-      <div class="field-row" id="lunarFields" style="display:none">
-        <div class="field small">
-          <label>農曆年</label>
-          <input type="number" id="inLYear" value="1990">
+      <div class="row form-row" id="lunarFields" style="display:none">
+        <div class="col-auto field-sm">
+          <label class="form-label" for="inLYear">農曆年</label>
+          <input type="number" class="form-control" id="inLYear" value="1990">
         </div>
-        <div class="field small">
-          <label>農曆月</label>
-          <input type="number" id="inLMonth" value="1" min="1" max="12">
+        <div class="col-auto field-sm">
+          <label class="form-label" for="inLMonth">農曆月</label>
+          <input type="number" class="form-control" id="inLMonth" value="1" min="1" max="12">
         </div>
-        <div class="field small">
-          <label>農曆日</label>
-          <input type="number" id="inLDay" value="1" min="1" max="30">
+        <div class="col-auto field-sm">
+          <label class="form-label" for="inLDay">農曆日</label>
+          <input type="number" class="form-control" id="inLDay" value="1" min="1" max="30">
         </div>
-        <div class="field small">
-          <label>閏月？</label>
+        <div class="col-auto field-sm">
+          <label class="form-label">閏月？</label>
           <div class="seg" id="leapSeg">
-            <button class="on" data-v="0">否</button>
-            <button data-v="1">是</button>
+            <button type="button" class="on" data-v="0">否</button>
+            <button type="button" data-v="1">是</button>
           </div>
         </div>
-        <div class="field small">
-          <label>時辰</label>
-          <select id="inLHour"></select>
+        <div class="col-auto field-sm">
+          <label class="form-label" for="inLHour">時辰</label>
+          <select class="form-select" id="inLHour"></select>
         </div>
       </div>
 
-      <div class="field-row">
-        <div class="field" style="flex:1 1 0">
-          <label>經度</label>
-          <div class="lng-group">
-            <input type="number" id="inLng" value="120" step="0.01" min="0" max="180">
+      <div class="row form-row">
+        <div class="col-6">
+          <label class="form-label" for="inLng">經度</label>
+          <div class="lng-group d-flex">
+            <input type="number" class="form-control" id="inLng" value="120" step="0.01" min="0" max="180">
             <div class="seg" id="lngDirSeg">
-              <button class="on" data-v="E">東</button>
-              <button data-v="W">西</button>
+              <button type="button" class="on" data-v="E">東</button>
+              <button type="button" data-v="W">西</button>
             </div>
           </div>
         </div>
-        <div class="field" style="flex:1 1 0">
-          <label>晚子時算</label>
+        <div class="col-6">
+          <label class="form-label">晚子時算</label>
           <div class="seg" id="lateZiSeg">
-            <button data-v="0">當日</button>
-            <button class="on" data-v="1">次日</button>
+            <button type="button" data-v="0">當日</button>
+            <button type="button" class="on" data-v="1">次日</button>
           </div>
         </div>
       </div>
@@ -125,15 +126,24 @@
     <!-- random tab -->
     <div class="tab-panel" id="tab-random" style="display:none">
       <p class="hint">紫卦隨機起盤：不需要輸入數字，按下「起卦」由系統直接隨機產生一組完整的年、月、日、時（年份不限範圍），並依此起一張占卜用命盤，每次按都會是不同的結果，適合即時占卜參考，並非個人本命盤。</p>
-      <button class="btn-main" id="btnBuildRandom">起　卦</button>
+      <button type="button" class="btn btn-main w-100" id="btnBuildRandom">起　卦</button>
     </div>
 
     <!-- saved tab -->
     <div class="tab-panel" id="tab-saved" style="display:none">
-      <div class="saved-list" id="savedList"></div>
+      <div class="saved-list d-flex flex-column" id="savedList"></div>
       <div class="empty-note" id="savedEmpty">尚未儲存任何命盤</div>
+      <div class="backup-box">
+        <div class="backup-title">命例庫備份</div>
+        <div class="row backup-row">
+          <div class="col-6"><button type="button" class="btn btn-ghost w-100" id="btnExportLib">匯出備份</button></div>
+          <div class="col-6"><button type="button" class="btn btn-ghost w-100" id="btnImportLib">匯入還原</button></div>
+        </div>
+        <div class="backup-hint">匯出會把全部命例（含斷事紀錄）存成一個 .json 檔到你的裝置；匯入時會與現有命例合併，不會清掉現有資料，同一筆命例以較新儲存的為準。</div>
+        <input type="file" class="d-none" id="fileImportLib" accept=".json,application/json">
+      </div>
     </div>
-  </div>
+  </div></div>
 
   <!-- 本命起盤的說明小字與起盤按鈕，獨立於卡片之外 -->
   <div id="birthFooter">
@@ -144,43 +154,53 @@
       <li>使用「國曆」輸入時，晚子時是否進位到隔天農曆日由上面的開關決定，時辰本身都仍是子時；「農曆」輸入是直接指定農曆日與時辰，不受此開關影響。</li>
     </ul>
 
-    <button class="btn-main" id="btnBuild">起　盤</button>
+    <button type="button" class="btn btn-main w-100" id="btnBuild">起　盤</button>
   </div>
 
-  <!-- 快速輸入日期時間：小視窗輸入 12 碼數字，直接帶入出生日期／時間欄位 -->
-  <div class="modal-backdrop" id="quickInputBackdrop"></div>
-  <div class="modal-box" id="quickInputModal">
-    <h3>快速輸入日期時間</h3>
-    <p class="hint" style="margin:6px 0 14px">例：198903251456 = 國曆 1989/03/25　14:56</p>
-    <input type="text" id="quickInputField" inputmode="numeric" placeholder="請輸入12碼數字" maxlength="12">
-    <div class="modal-actions">
-      <button class="btn-ghost" id="quickInputCancel">取消</button>
-      <button class="btn-main" id="quickInputConfirm">確定</button>
+  <!-- 快速輸入日期時間：Bootstrap Modal，輸入 12 碼數字，直接帶入出生日期／時間欄位 -->
+  <div class="modal" id="quickInputModal" tabindex="-1" aria-labelledby="quickInputTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h3 class="modal-title" id="quickInputTitle">快速輸入日期時間</h3>
+          <p class="hint" style="margin:6px 0 12px">例：198903251456 = 國曆 1989/03/25　14:56</p>
+          <input type="text" class="form-control" id="quickInputField" inputmode="numeric" placeholder="請輸入12碼數字" maxlength="12">
+          <div class="modal-actions d-flex gap-2">
+            <button type="button" class="btn btn-ghost flex-fill" id="quickInputCancel">取消</button>
+            <button type="button" class="btn btn-main flex-fill" id="quickInputConfirm">確定</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- 已存命例：修改名稱小視窗 -->
-  <div class="modal-backdrop" id="renameBackdrop"></div>
-  <div class="modal-box" id="renameModal">
-    <h3>修改名稱</h3>
-    <input type="text" id="renameField" placeholder="請輸入新名稱" maxlength="30" style="margin-top:14px">
-    <div class="modal-actions">
-      <button class="btn-ghost" id="renameCancel">取消</button>
-      <button class="btn-main" id="renameConfirm">確定</button>
+  <!-- 已存命例：修改名稱 Bootstrap Modal -->
+  <div class="modal" id="renameModal" tabindex="-1" aria-labelledby="renameTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h3 class="modal-title" id="renameTitle">修改名稱</h3>
+          <input type="text" class="form-control" id="renameField" placeholder="請輸入新名稱" maxlength="30" style="margin-top:12px">
+          <div class="modal-actions d-flex gap-2">
+            <button type="button" class="btn btn-ghost flex-fill" id="renameCancel">取消</button>
+            <button type="button" class="btn btn-main flex-fill" id="renameConfirm">確定</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- ============ CHART ============ -->
   <div id="chartSection">
     <!-- 取代主標題，隨頁面捲動 -->
-    <div class="chart-topbar" id="chartTopbar">
-      <div class="ttl">
+    <div class="chart-topbar d-flex justify-content-between align-items-center flex-wrap gap-2" id="chartTopbar">
+      <div class="ttl d-flex flex-column">
         <h2 id="chartTitle">命盤</h2>
         <div class="sub" id="chartSub"></div>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-        <button class="btn-ghost" id="btnBack">← 返回設定</button>
-        <button class="btn-ghost" id="btnOpenSaved">已存命例</button>
+      <div class="topbar-actions d-flex flex-wrap align-items-center">
+        <button type="button" class="btn btn-ghost btn-accent" id="btnBack">← 返回設定</button>
+        <button type="button" class="btn btn-ghost btn-gold" id="btnOpenSaved">已存命例</button>
       </div>
     </div>
 
@@ -193,103 +213,111 @@
     </div>
 
     <!-- 塗鴉工具列，不需要外包卡片 -->
-    <div class="field-row" style="margin-bottom:14px" id="drawToolsRow">
-      <button class="btn-ghost draw-tool-btn" id="btnDrawToggle" title="塗鴉" aria-label="塗鴉">
+    <div class="d-flex justify-content-center" id="drawToolsRow">
+      <button type="button" class="btn btn-ghost draw-tool-btn" id="btnDrawToggle" title="塗鴉" aria-label="塗鴉">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
       </button>
-      <button class="btn-ghost draw-tool-btn" id="btnDrawUndo" disabled title="復原" aria-label="復原">
+      <button type="button" class="btn btn-ghost draw-tool-btn" id="btnDrawUndo" disabled title="復原" aria-label="復原">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
       </button>
-      <button class="btn-ghost draw-tool-btn" id="btnDrawRedo" disabled title="重做" aria-label="重做">
+      <button type="button" class="btn btn-ghost draw-tool-btn" id="btnDrawRedo" disabled title="重做" aria-label="重做">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
       </button>
-      <button class="btn-ghost draw-tool-btn" id="btnDrawClear" title="清除塗鴉" aria-label="清除塗鴉">
+      <button type="button" class="btn btn-ghost draw-tool-btn" id="btnDrawClear" title="清除塗鴉" aria-label="清除塗鴉">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
       </button>
-      <button class="btn-ghost draw-tool-btn" id="btnScreenshot" title="截圖" aria-label="截圖">
+      <button type="button" class="btn btn-ghost draw-tool-btn" id="btnScreenshot" title="截圖" aria-label="截圖">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg>
       </button>
-      <button class="btn-ghost draw-tool-btn" id="btnNoteToggle" title="斷事紀錄" aria-label="斷事紀錄">
+      <button type="button" class="btn btn-ghost draw-tool-btn" id="btnNoteToggle" title="斷事紀錄" aria-label="斷事紀錄">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
       </button>
     </div>
 
-    <div class="card">
-      <div class="scope-bar" style="margin-top:10px">
-        <div class="field-row" id="quickScopeRow" style="grid-column:1/3">
-          <button class="btn-ghost" id="btnResetScope">回本命盤</button>
-          <button class="btn-ghost" id="btnThisYear">今年</button>
-          <button class="btn-ghost" id="btnThisMonth">本月</button>
-          <button class="btn-ghost" id="btnToday">今天</button>
+    <div class="card"><div class="card-body">
+      <div class="row scope-bar">
+        <div class="col-12 d-flex" id="quickScopeRow">
+          <button type="button" class="btn btn-ghost" id="btnResetScope">回本命盤</button>
+          <button type="button" class="btn btn-ghost" id="btnThisYear">今年</button>
+          <button type="button" class="btn btn-ghost" id="btnThisMonth">本月</button>
+          <button type="button" class="btn btn-ghost" id="btnToday">今天</button>
         </div>
-        <div class="scope-chip">
-          <span class="lbl">大限</span>
-          <button type="button" class="scope-step" id="daxPrev">‹</button>
-          <select id="daxSel"><option value="-1">本命</option></select>
-          <button type="button" class="scope-step" id="daxNext">›</button>
+        <div class="col-6 col-lg-3">
+          <div class="scope-chip d-flex">
+            <span class="lbl">大限</span>
+            <button type="button" class="scope-step" id="daxPrev">‹</button>
+            <select class="form-select" id="daxSel"><option value="-1">本命</option></select>
+            <button type="button" class="scope-step" id="daxNext">›</button>
+          </div>
         </div>
-        <div class="scope-chip">
-          <span class="lbl">流年</span>
-          <button type="button" class="scope-step" id="lnPrev">‹</button>
-          <select id="lnSel"></select>
-          <button type="button" class="scope-step" id="lnNext">›</button>
+        <div class="col-6 col-lg-3">
+          <div class="scope-chip d-flex">
+            <span class="lbl">流年</span>
+            <button type="button" class="scope-step" id="lnPrev">‹</button>
+            <select class="form-select" id="lnSel"></select>
+            <button type="button" class="scope-step" id="lnNext">›</button>
+          </div>
         </div>
-        <div class="scope-chip">
-          <span class="lbl">流月</span>
-          <button type="button" class="scope-step" id="lyPrev">‹</button>
-          <select id="lySel"></select>
-          <button type="button" class="scope-step" id="lyNext">›</button>
+        <div class="col-6 col-lg-3">
+          <div class="scope-chip d-flex">
+            <span class="lbl">流月</span>
+            <button type="button" class="scope-step" id="lyPrev">‹</button>
+            <select class="form-select" id="lySel"></select>
+            <button type="button" class="scope-step" id="lyNext">›</button>
+          </div>
         </div>
-        <div class="scope-chip">
-          <span class="lbl">流日</span>
-          <button type="button" class="scope-step" id="lrPrev">‹</button>
-          <select id="lrSel"></select>
-          <button type="button" class="scope-step" id="lrNext">›</button>
+        <div class="col-6 col-lg-3">
+          <div class="scope-chip d-flex">
+            <span class="lbl">流日</span>
+            <button type="button" class="scope-step" id="lrPrev">‹</button>
+            <select class="form-select" id="lrSel"></select>
+            <button type="button" class="scope-step" id="lrNext">›</button>
+          </div>
         </div>
-        <div class="lunar-info" id="lunarInfo" style="grid-column:1/3" hidden></div>
-        <div style="grid-column:1/3">
+        <div class="col-12" id="lunarInfo" hidden></div>
+        <div class="col-12 scope-display-inner">
           <div class="lbl-block">盤內顯示</div>
           <div class="seg" id="innerSeg">
-            <button data-v="guide">指示線</button>
-            <button data-v="gonggan">宮干四化</button>
-            <button data-v="flying">運/流曜</button>
-            <button class="on" data-v="centerinfo">生辰資訊</button>
-            <button data-v="all">全部開啟</button>
+            <button type="button" data-v="guide">指示線</button>
+            <button type="button" data-v="gonggan">宮干四化</button>
+            <button type="button" data-v="flying">運/流曜</button>
+            <button type="button" class="on" data-v="centerinfo">生辰資訊</button>
+            <button type="button" data-v="all">全部開啟</button>
           </div>
         </div>
       </div>
 
-      <div class="scope-bar" style="margin-top:-4px">
-        <div style="grid-column:1/3">
+      <div class="row scope-bar scope-bar-2">
+        <div class="col-12">
           <div class="lbl-block">外圍顯示</div>
           <div class="seg" id="outerSeg">
-            <button class="on" data-v="none">不顯示</button>
-            <button data-v="direction">方位</button>
-            <button data-v="bodypart">身體部位</button>
-            <button data-v="zodiac">生肖</button>
-            <button data-v="liuyue">大限/年/月</button>
+            <button type="button" class="on" data-v="none">不顯示</button>
+            <button type="button" data-v="direction">方位</button>
+            <button type="button" data-v="bodypart">身體部位</button>
+            <button type="button" data-v="zodiac">生肖</button>
+            <button type="button" data-v="liuyue">大限/年/月</button>
           </div>
         </div>
       </div>
-    </div>
+    </div></div>
 
     <!-- 宮位詳細資訊／存入命盤庫，不需要外包卡片 -->
     <div class="detail-panel" id="detailPanel">
       <h3>點選任一宮位</h3>
-      <div class="row">查看該宮完整星曜、身體部位對應，並以外框標示三方四正宮位與相對宮位名稱。</div>
+      <div class="drow">查看該宮完整星曜、身體部位對應，並以外框標示三方四正宮位與相對宮位名稱。</div>
     </div>
 
-    <div class="save-row">
-      <input type="text" id="saveLabel" placeholder="替這張命盤取個名字，例如：我 / 媽媽 / 阿翔">
-      <button class="btn-ghost" id="btnSave">存入命例庫</button>
+    <div class="save-row d-flex gap-2">
+      <input type="text" class="form-control" id="saveLabel" placeholder="替這張命盤取個名字，例如：我 / 媽媽 / 阿翔">
+      <button type="button" class="btn btn-ghost btn-accent" id="btnSave">存入命例庫</button>
     </div>
 
     <div class="note-sheet-backdrop" id="noteSheetBackdrop"></div>
     <div class="note-sheet" id="noteSheet">
       <div class="note-sheet-handle"></div>
       <div class="note-sheet-head">斷事紀錄</div>
-      <textarea id="chartNote" rows="4" placeholder="記下這張命盤的心得、備註…"></textarea>
-      <button class="btn-main" id="btnNoteSave">儲存</button>
+      <textarea class="form-control" id="chartNote" rows="4" placeholder="記下這張命盤的心得、備註…"></textarea>
+      <button type="button" class="btn btn-main" id="btnNoteSave">儲存</button>
     </div>
   </div>
 
@@ -299,6 +327,7 @@
   </footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 (function(){
 "use strict";
@@ -851,18 +880,18 @@ document.getElementById('btnUseNow').addEventListener('click', function(){
 });
 
 /* 快速輸入日期時間：12 碼數字（yyyyMMddHHmm）直接帶入出生日期時間欄位 */
+/* 兩個小視窗都用 Bootstrap Modal（不加 fade 動畫，這樣 show() 當下就是可見的，
+   手機瀏覽器才能在點擊的當下直接把游標放進輸入欄、跳出鍵盤） */
+function bsModal(id){ return bootstrap.Modal.getOrCreateInstance(document.getElementById(id)); }
 function openQuickInputModal(){
   document.getElementById('quickInputField').value = '';
-  document.getElementById('quickInputBackdrop').classList.add('show');
-  document.getElementById('quickInputModal').classList.add('show');
+  bsModal('quickInputModal').show();
   document.getElementById('quickInputField').focus();
 }
 function closeQuickInputModal(){
-  document.getElementById('quickInputBackdrop').classList.remove('show');
-  document.getElementById('quickInputModal').classList.remove('show');
+  bsModal('quickInputModal').hide();
 }
 document.getElementById('btnQuickInput').addEventListener('click', openQuickInputModal);
-document.getElementById('quickInputBackdrop').addEventListener('click', closeQuickInputModal);
 document.getElementById('quickInputCancel').addEventListener('click', closeQuickInputModal);
 function confirmQuickInput(){
   var raw = document.getElementById('quickInputField').value.trim();
@@ -1290,7 +1319,7 @@ function redrawStrokes(){
     var poly = document.createElementNS('http://www.w3.org/2000/svg','polyline');
     poly.setAttribute('points', pts);
     poly.setAttribute('fill','none');
-    poly.setAttribute('stroke','#E07A2C');
+    poly.style.stroke='var(--draw)';
     poly.setAttribute('stroke-width','1.8');
     poly.setAttribute('stroke-linecap','round');
     poly.setAttribute('stroke-linejoin','round');
@@ -1391,7 +1420,7 @@ function captureChartAsImage(){
   }
   showToast('截圖中…');
   html2canvas(el, {
-    backgroundColor:'#F7F7F7',
+    backgroundColor:getComputedStyle(document.documentElement).getPropertyValue('--paper').trim(),
     scale: Math.min(3, (window.devicePixelRatio||1)*2),
     useCORS:true
   }).then(function(canvas){
@@ -1650,7 +1679,7 @@ function renderLunarInfo(){
   var em = effectiveLunarMonth(lunar);
   var stem = TG[(YIN_STEM_START[ln.stemIdx] + em-1) % 10];
   var branch = DZ[(2 + em-1) % 12];
-  el.textContent = '農曆 '+(lunar.isLeap?'閏':'')+MONTH_NAMES[lunar.month-1]+LUNAR_DAY_NAMES[lunar.day-1]+'　'+stem+branch+'月 '+dayGanzhi(gDate)+'日';
+  el.innerHTML = '<div class="lunar-info">農曆 '+(lunar.isLeap?'閏':'')+MONTH_NAMES[lunar.month-1]+LUNAR_DAY_NAMES[lunar.day-1]+'　'+stem+branch+'月 '+dayGanzhi(gDate)+'日'+'</div>';
   el.hidden = false;
 }
 
@@ -1884,8 +1913,8 @@ function renderGrid(){
       '<div class="cline">'+(c.meta.gender==='M'?'男':'女')+' · '+c.juElement+c.ju+'局　'+TG[c.yearStemIdx]+DZ[c.yearBranchIdx]+'年生</div>'+
       '<div class="cline">農曆 '+c.meta.lunar.year+'年'+(c.meta.lunar.isLeap?'閏':'')+c.meta.lunar.month+'月'+c.meta.lunar.day+'日 '+HOUR_LABEL[c.hourIdx].split('(')[0]+'時</div>';
     if(c.meta.clockTime){
-      centerHtml += '<div class="cline" style="font-size:10.5px">鐘錶時間：'+c.meta.clockTime+'</div>';
-      centerHtml += '<div class="cline" style="font-size:10.5px">'+(c.meta.tst?'真太陽時':'平太陽時')+'：'+c.meta.trueSolarTime+'</div>';
+      centerHtml += '<div class="cline">鐘錶時間：'+c.meta.clockTime+'</div>';
+      centerHtml += '<div class="cline">'+(c.meta.tst?'真太陽時':'平太陽時')+'：'+c.meta.trueSolarTime+'</div>';
     }
   }
   if(daxInfo){
@@ -1910,10 +1939,22 @@ function renderGrid(){
   renderGuideLines();
 }
 
+/* 視窗尺寸改變時（轉直橫向、拉動視窗、跨過手機／平板／桌機斷點），
+   三方四正虛線和塗鴉都是用像素座標畫的，要重畫才會跟著新的格子位置 */
+var _resizeTimer = null;
+window.addEventListener('resize', function(){
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(function(){
+    if(!STATE.chart || document.getElementById('chartSection').style.display!=='block') return;
+    redrawStrokes();
+    renderGuideLines();
+  }, 120);
+});
+
 function renderDetail(){
   var panel = document.getElementById('detailPanel');
   if(STATE.selectedPalaceK===null){
-    panel.innerHTML = '<h3>點選任一宮位</h3><div class="row">查看該宮完整星曜、身體部位對應，並以外框標示三方四正宮位。</div>';
+    panel.innerHTML = '<h3>點選任一宮位</h3><div class="drow">查看該宮完整星曜、身體部位對應，並以外框標示三方四正宮位。</div>';
     return;
   }
   var c = STATE.chart;
@@ -1926,10 +1967,10 @@ function renderDetail(){
   var sh = SIHUA[p.stemIdx];
   var gongganSihua = TG[p.stemIdx]+sihuaShort(sh.lu)+sihuaShort(sh.quan)+sihuaShort(sh.ke)+sihuaShort(sh.ji);
   var html = '';
-  html += '<div class="row"><b>宮干四化：</b>'+gongganSihua+'（'+TG[p.stemIdx]+'干：'+sh.lu+'祿、'+sh.quan+'權、'+sh.ke+'科、'+sh.ji+'忌）</div>';
-  html += '<div class="row"><b>干支五行（納音）：</b>'+TG[p.stemIdx]+DZ[p.branchIdx]+'・'+gzElement+'</div>';
-  html += '<div class="row"><b>星曜五行：</b>'+starsElTxt+'</div>';
-  html += '<div class="row"><b>對應身體部位：</b>'+p.bodyPart+'</div>';
+  html += '<div class="drow"><b>宮干四化：</b>'+gongganSihua+'（'+TG[p.stemIdx]+'干：'+sh.lu+'祿、'+sh.quan+'權、'+sh.ke+'科、'+sh.ji+'忌）</div>';
+  html += '<div class="drow"><b>干支五行（納音）：</b>'+TG[p.stemIdx]+DZ[p.branchIdx]+'・'+gzElement+'</div>';
+  html += '<div class="drow"><b>星曜五行：</b>'+starsElTxt+'</div>';
+  html += '<div class="drow"><b>對應身體部位：</b>'+p.bodyPart+'</div>';
   var daxInfo = activeDaxianInfo();
   var liuInfo = activeLiunianInfo();
   if(liuInfo){
@@ -1940,13 +1981,13 @@ function renderDetail(){
     var mNo = (((p.branchIdx - douJunBranch) % 12) + 12) % 12; // 0～11：這個宮位是流年第幾個月
     var foundLabel = MONTH_NAMES[mNo]+TG[(monthStemStart + mNo)%10];
     if(foundLabel!==null){
-      html += '<div class="row"><b>流月：</b>'+foundLabel+'</div>';
+      html += '<div class="drow"><b>流月：</b>'+foundLabel+'</div>';
     } else {
-      html += '<div class="row"><b>大限：</b>'+p.ageStart+' ~ '+p.ageEnd+' 歲</div>';
+      html += '<div class="drow"><b>大限：</b>'+p.ageStart+' ~ '+p.ageEnd+' 歲</div>';
     }
     if(daxInfo){
       // 選了流年（連動大限）時，一併顯示目前所在的大限資訊，不要被流月資訊蓋掉
-      html += '<div class="row"><b>大限：</b>'+daxInfo.ageStart+' ~ '+daxInfo.ageEnd+' 歲　'+TG[daxInfo.stemIdx]+DZ[daxInfo.branchIdx]+'</div>';
+      html += '<div class="drow"><b>大限：</b>'+daxInfo.ageStart+' ~ '+daxInfo.ageEnd+' 歲　'+TG[daxInfo.stemIdx]+DZ[daxInfo.branchIdx]+'</div>';
     }
   } else if(daxInfo){
     // 只選大限（沒選流年）：顯示這個宮位在這個大限裡對應到的西元年、歲數
@@ -1958,13 +1999,13 @@ function renderDetail(){
       if(yb===p.branchIdx){ foundYear=y; foundAge=age; break; }
     }
     if(foundYear!==null){
-      html += '<div class="row"><b>流年：</b>'+foundYear+'年（'+foundAge+'歲）</div>';
+      html += '<div class="drow"><b>流年：</b>'+foundYear+'年（'+foundAge+'歲）</div>';
     } else {
-      html += '<div class="row"><b>大限：</b>'+p.ageStart+' ~ '+p.ageEnd+' 歲</div>';
+      html += '<div class="drow"><b>大限：</b>'+p.ageStart+' ~ '+p.ageEnd+' 歲</div>';
     }
   } else {
     // 本命盤狀態（大限流年都沒選）：顯示這個宮位自己的大限歲數區間
-    html += '<div class="row"><b>大限：</b>'+p.ageStart+' ~ '+p.ageEnd+' 歲</div>';
+    html += '<div class="drow"><b>大限：</b>'+p.ageStart+' ~ '+p.ageEnd+' 歲</div>';
   }
   panel.innerHTML = html;
 }
@@ -2182,12 +2223,12 @@ function showToast(msg, isError){
   var layer = document.getElementById('toastLayer');
   if(!layer) return;
   var t = document.createElement('div');
-  t.className = 'toast'+(isError?' toast-error':'');
+  t.className = 'app-toast'+(isError?' toast-error':'');
   t.textContent = msg;
   layer.appendChild(t);
-  requestAnimationFrame(function(){ t.classList.add('show'); });
+  requestAnimationFrame(function(){ t.classList.add('is-in'); });
   setTimeout(function(){
-    t.classList.remove('show');
+    t.classList.remove('is-in');
     setTimeout(function(){ t.remove(); }, 250);
   }, 3200);
 }
@@ -2303,6 +2344,125 @@ document.getElementById('btnSave').addEventListener('click', function(){
   });
 });
 
+function escapeHtml(t){
+  return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* ===== 命例庫備份：匯出成 .json 檔／從 .json 檔匯入還原 ===== */
+var BACKUP_APP = 'ziwei-library';
+function pad2(n){ return (n<10?'0':'')+n; }
+function saveTextFile(filename, text){
+  // 在 Claude 的 artifact 預覽裡，檔案要走 downloads 能力；一般網頁直接用瀏覽器下載
+  function plain(){
+    var blob = new Blob([text], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+    return Promise.resolve('saved');
+  }
+  if(window.claude && typeof window.claude.use==='function'){
+    return window.claude.use('downloads').then(function(dl){
+      if(!dl) return plain();
+      return dl.save({filename:filename, data:text}).then(function(r){ return r.status; });
+    }, function(){ return plain(); });
+  }
+  return plain();
+}
+function exportLibrary(){
+  storeGet('chart-index').catch(function(){ return null; }).then(function(res){
+    var idx = [];
+    try{ idx = res? JSON.parse(res.value):[]; }catch(e){ idx=[]; }
+    if(!idx.length){ showToast('命例庫是空的，沒有可匯出的命例', true); return null; }
+    return Promise.all(idx.map(function(it){
+      return storeGet(it.id).then(function(r){ try{ return JSON.parse(r.value); }catch(e){ return null; } }, function(){ return null; });
+    })).then(function(list){
+      var charts = list.filter(function(x){ return x && x.input && x.meta; });
+      if(!charts.length){ showToast('找不到可匯出的命例資料', true); return null; }
+      var d = new Date();
+      var fname = '紫微命例庫備份_'+d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+'.json';
+      var doc = { app:BACKUP_APP, version:1, exportedAt:Date.now(), count:charts.length, charts:charts };
+      return saveTextFile(fname, JSON.stringify(doc, null, 1)).then(function(status){
+        if(status==='saved') showToast('已匯出 '+charts.length+' 筆命例');
+      });
+    });
+  }).catch(function(err){
+    if(err && err.code==='declined') return;
+    console.error(err);
+    showToast('匯出失敗，請稍後再試', true);
+  });
+}
+function validBackupChart(c){
+  if(!c || typeof c!=='object') return false;
+  if(typeof c.id!=='string' || !/^[A-Za-z0-9_-]{1,64}$/.test(c.id) || c.id==='chart-index') return false;
+  if(!c.meta || typeof c.meta!=='object' || !c.meta.lunar) return false;
+  var i = c.input;
+  if(!i || typeof i!=='object') return false;
+  function inr(v,lo,hi){ return typeof v==='number' && isFinite(v) && Math.floor(v)===v && v>=lo && v<=hi; }
+  if(!inr(i.yearStemIdx,0,9) || !inr(i.yearBranchIdx,0,11) || !inr(i.month,1,12) || !inr(i.day,1,30) || !inr(i.hourIdx,0,11)) return false;
+  if(i.gender!=='M' && i.gender!=='F') return false;
+  return true;
+}
+function importLibraryFromText(text){
+  var doc;
+  try{ doc = JSON.parse(text); }catch(e){ showToast('匯入失敗：不是有效的備份檔（JSON 格式錯誤）', true); return; }
+  if(!doc || doc.app!==BACKUP_APP || !Array.isArray(doc.charts)){
+    showToast('匯入失敗：這不是本工具匯出的命例庫備份檔', true); return;
+  }
+  var valid = doc.charts.filter(validBackupChart);
+  var invalid = doc.charts.length - valid.length;
+  if(!valid.length){ showToast('匯入失敗：備份檔裡沒有可用的命例', true); return; }
+  var added=0, updated=0, skipped=0;
+  storeGet('chart-index').catch(function(){ return null; }).then(function(res){
+    var idx = [];
+    try{ idx = res? JSON.parse(res.value):[]; }catch(e){ idx=[]; }
+    var writes = [];
+    valid.forEach(function(c){
+      c.meta.name = String(c.meta.name==null?'未命名':c.meta.name).slice(0,60);
+      c.note = typeof c.note==='string' ? c.note : '';
+      c.savedAt = (typeof c.savedAt==='number' && isFinite(c.savedAt)) ? c.savedAt : Date.now();
+      var entry = { id:c.id, name:c.meta.name, savedAt:c.savedAt, birthTime:(c.meta.clockTime||c.meta.lunarLabel||undefined) };
+      var pos = -1;
+      idx.forEach(function(it,n){ if(it.id===c.id) pos=n; });
+      if(pos>=0){
+        if((idx[pos].savedAt||0) >= c.savedAt){ skipped++; return; } // 現有的比較新，保留
+        idx[pos] = entry; updated++;
+      } else { idx.push(entry); added++; }
+      writes.push(storeSet(c.id, JSON.stringify(c)));
+    });
+    idx.sort(function(a,b){ return (b.savedAt||0)-(a.savedAt||0); });
+    writes.push(storeSet('chart-index', JSON.stringify(idx)));
+    return Promise.all(writes);
+  }).then(function(){
+    renderSavedList();
+    var parts = [];
+    if(added) parts.push('新增 '+added+' 筆');
+    if(updated) parts.push('更新 '+updated+' 筆');
+    if(skipped) parts.push('略過 '+skipped+' 筆（現有版本較新）');
+    if(invalid) parts.push('無效 '+invalid+' 筆已忽略');
+    showToast('匯入完成：'+parts.join('、'));
+  }).catch(function(err){
+    console.error(err);
+    showToast('匯入失敗，請稍後再試', true);
+  });
+}
+document.getElementById('btnExportLib').addEventListener('click', exportLibrary);
+document.getElementById('btnImportLib').addEventListener('click', function(){
+  var f = document.getElementById('fileImportLib');
+  f.value = '';
+  f.click();
+});
+document.getElementById('fileImportLib').addEventListener('change', function(e){
+  var file = e.target.files && e.target.files[0];
+  if(!file) return;
+  if(file.size > 20*1024*1024){ showToast('檔案太大，不像是命例庫備份檔', true); return; }
+  var reader = new FileReader();
+  reader.onload = function(){ importLibraryFromText(String(reader.result)); };
+  reader.onerror = function(){ showToast('讀取檔案失敗', true); };
+  reader.readAsText(file);
+});
+
 function renderSavedList(){
   var list = document.getElementById('savedList');
   var empty = document.getElementById('savedEmpty');
@@ -2318,11 +2478,11 @@ function renderSavedList(){
       row.className='saved-item';
       var savedStr = fmtSavedAt(item.savedAt);
       var metaHtml = '<div class="meta">儲存於 '+savedStr+'</div>';
-      if(item.birthTime){ metaHtml += '<div class="meta">命例時 '+fmtClockTimeStr(item.birthTime)+'</div>'; }
-      row.innerHTML = '<div>'+item.name+'</div>'+metaHtml+
-        '<div class="ops"><button data-id="'+item.id+'" data-name="'+item.name.replace(/"/g,'&quot;')+'" class="rename">修改名稱</button>'+
-        '<button data-id="'+item.id+'" class="load">開啟</button>'+
-        '<button data-id="'+item.id+'" class="del">刪除</button></div>';
+      if(item.birthTime){ metaHtml += '<div class="meta">命例時 '+escapeHtml(fmtClockTimeStr(item.birthTime))+'</div>'; }
+      row.innerHTML = '<div>'+escapeHtml(item.name)+'</div>'+metaHtml+
+        '<div class="ops"><button data-id="'+escapeHtml(item.id)+'" data-name="'+escapeHtml(item.name)+'" class="rename">修改名稱</button>'+
+        '<button data-id="'+escapeHtml(item.id)+'" class="load">開啟</button>'+
+        '<button data-id="'+escapeHtml(item.id)+'" class="del">刪除</button></div>';
       list.appendChild(row);
     });
     list.querySelectorAll('.rename').forEach(function(b){
@@ -2395,17 +2555,16 @@ var _renameTargetId = null;
 function openRenameModal(id, currentName){
   _renameTargetId = id;
   document.getElementById('renameField').value = currentName || '';
-  document.getElementById('renameBackdrop').classList.add('show');
-  document.getElementById('renameModal').classList.add('show');
+  bsModal('renameModal').show();
   document.getElementById('renameField').focus();
   document.getElementById('renameField').select();
 }
 function closeRenameModal(){
-  document.getElementById('renameBackdrop').classList.remove('show');
-  document.getElementById('renameModal').classList.remove('show');
+  bsModal('renameModal').hide();
   _renameTargetId = null;
 }
-document.getElementById('renameBackdrop').addEventListener('click', closeRenameModal);
+// 點背景或按 Esc 關閉時（Bootstrap 自己處理），一樣要清掉目標 id
+document.getElementById('renameModal').addEventListener('hidden.bs.modal', function(){ _renameTargetId = null; });
 document.getElementById('renameCancel').addEventListener('click', closeRenameModal);
 function confirmRename(){
   var newName = document.getElementById('renameField').value.trim();
